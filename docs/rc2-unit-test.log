@@ -1,0 +1,116 @@
+
+> gpt-task-manager@1.0.1 test
+> node --test tests/*.test.cjs
+
+TAP version 13
+# Subtest: completion requires observed start and happens once
+ok 1 - completion requires observed start and happens once
+  ---
+  duration_ms: 1.642405
+  type: 'test'
+  ...
+# Subtest: stop, error, and suspension cannot turn into completion
+ok 2 - stop, error, and suspension cannot turn into completion
+  ---
+  duration_ms: 0.253618
+  type: 'test'
+  ...
+# Subtest: reset on route or reload invalidates old task
+ok 3 - reset on route or reload invalidates old task
+  ---
+  duration_ms: 0.185507
+  type: 'test'
+  ...
+# Subtest: new active task clears unread and assigns new id
+ok 4 - new active task clears unread and assigns new id
+  ---
+  duration_ms: 0.130309
+  type: 'test'
+  ...
+# Subtest: duplicate active observation preserves task identity
+ok 5 - duplicate active observation preserves task identity
+  ---
+  duration_ms: 0.139692
+  type: 'test'
+  ...
+# Subtest: read preserves completion metadata
+ok 6 - read preserves completion metadata
+  ---
+  duration_ms: 0.118447
+  type: 'test'
+  ...
+# Subtest: existing active conversation and reload never start or complete
+ok 7 - existing active conversation and reload never start or complete
+  ---
+  duration_ms: 1.622648
+  type: 'test'
+  ...
+# Subtest: requires submission, observed stop, changed response, final control and stable candidate
+ok 8 - requires submission, observed stop, changed response, final control and stable candidate
+  ---
+  duration_ms: 0.283223
+  type: 'test'
+  ...
+# Subtest: long idle or copy control alone cannot complete
+ok 9 - long idle or copy control alone cannot complete
+  ---
+  duration_ms: 0.152556
+  type: 'test'
+  ...
+# Subtest: tool activity, stop reappearance and response mutations invalidate candidate
+ok 10 - tool activity, stop reappearance and response mutations invalidate candidate
+  ---
+  duration_ms: 0.266601
+  type: 'test'
+  ...
+# Subtest: explicit stop and errors never become completion
+ok 11 - explicit stop and errors never become completion
+  ---
+  duration_ms: 0.221182
+  type: 'test'
+  ...
+# Subtest: route reset discards active run
+ok 12 - route reset discards active run
+  ---
+  duration_ms: 0.134442
+  type: 'test'
+  ...
+# Subtest: validated content events keep channel open and duplicate finish does not notify twice
+ok 13 - validated content events keep channel open and duplicate finish does not notify twice
+  ---
+  duration_ms: 5.633785
+  type: 'test'
+  ...
+# Subtest: rejects wrong extension, child frame and mismatched route
+ok 14 - rejects wrong extension, child frame and mismatched route
+  ---
+  duration_ms: 1.048449
+  type: 'test'
+  ...
+# Subtest: completion cannot follow suspension or user stop
+ok 15 - completion cannot follow suspension or user stop
+  ---
+  duration_ms: 4.163173
+  type: 'test'
+  ...
+# Subtest: project names persist by conversation and do not leak across navigation
+ok 16 - project names persist by conversation and do not leak across navigation
+  ---
+  duration_ms: 1.59137
+  type: 'test'
+  ...
+# Subtest: opt-in diagnostic entries contain no title or conversation identifier
+ok 17 - opt-in diagnostic entries contain no title or conversation identifier
+  ---
+  duration_ms: 2.648052
+  type: 'test'
+  ...
+1..17
+# tests 17
+# suites 0
+# pass 17
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 178.93381

@@ -1,0 +1,254 @@
+
+> gpt-task-manager@1.0.4 test
+> node --test tests/*.test.cjs
+
+TAP version 13
+# Subtest: completion requires observed start and happens once
+ok 1 - completion requires observed start and happens once
+  ---
+  duration_ms: 2.025968
+  type: 'test'
+  ...
+# Subtest: stop, error, and suspension cannot turn into completion
+ok 2 - stop, error, and suspension cannot turn into completion
+  ---
+  duration_ms: 0.334798
+  type: 'test'
+  ...
+# Subtest: reset on route or reload invalidates old task
+ok 3 - reset on route or reload invalidates old task
+  ---
+  duration_ms: 0.145958
+  type: 'test'
+  ...
+# Subtest: new active task clears unread and assigns new id
+ok 4 - new active task clears unread and assigns new id
+  ---
+  duration_ms: 0.188848
+  type: 'test'
+  ...
+# Subtest: duplicate active observation preserves task identity
+ok 5 - duplicate active observation preserves task identity
+  ---
+  duration_ms: 0.143989
+  type: 'test'
+  ...
+# Subtest: read preserves completion metadata
+ok 6 - read preserves completion metadata
+  ---
+  duration_ms: 1.130058
+  type: 'test'
+  ...
+# Subtest: same-conversation reload, idle, suspend and read preserve completion independently of unread
+ok 7 - same-conversation reload, idle, suspend and read preserve completion independently of unread
+  ---
+  duration_ms: 0.451785
+  type: 'test'
+  ...
+# Subtest: new submission alone never manufactures a running task or clears completed
+ok 8 - new submission alone never manufactures a running task or clears completed
+  ---
+  duration_ms: 0.173457
+  type: 'test'
+  ...
+# Subtest: late or missing submission cannot start a new task
+ok 9 - late or missing submission cannot start a new task
+  ---
+  duration_ms: 0.458105
+  type: 'test'
+  ...
+# Subtest: route change does not preserve another conversation completion
+ok 10 - route change does not preserve another conversation completion
+  ---
+  duration_ms: 0.62172
+  type: 'test'
+  ...
+# Subtest: unrelated alerts do not erase unread completion; a new submitted request can surface an error
+ok 11 - unrelated alerts do not erase unread completion; a new submitted request can surface an error
+  ---
+  duration_ms: 0.26858
+  type: 'test'
+  ...
+# Subtest: existing active conversation and reload never start or complete
+ok 12 - existing active conversation and reload never start or complete
+  ---
+  duration_ms: 2.165314
+  type: 'test'
+  ...
+# Subtest: requires submission, observed stop, changed response, final control and stable candidate
+ok 13 - requires submission, observed stop, changed response, final control and stable candidate
+  ---
+  duration_ms: 0.330056
+  type: 'test'
+  ...
+# Subtest: long idle or copy control alone cannot complete
+ok 14 - long idle or copy control alone cannot complete
+  ---
+  duration_ms: 0.196768
+  type: 'test'
+  ...
+# Subtest: tool activity, stop reappearance and response mutations invalidate candidate
+ok 15 - tool activity, stop reappearance and response mutations invalidate candidate
+  ---
+  duration_ms: 0.291555
+  type: 'test'
+  ...
+# Subtest: explicit stop and errors never become completion
+ok 16 - explicit stop and errors never become completion
+  ---
+  duration_ms: 0.316864
+  type: 'test'
+  ...
+# Subtest: route reset discards active run
+ok 17 - route reset discards active run
+  ---
+  duration_ms: 0.163493
+  type: 'test'
+  ...
+# Subtest: submit without observed stop does not report active or completion and expires safely
+ok 18 - submit without observed stop does not report active or completion and expires safely
+  ---
+  duration_ms: 1.376868
+  type: 'test'
+  ...
+# Subtest: assistant turn appearing before stop observation still requires stable final evidence
+ok 19 - assistant turn appearing before stop observation still requires stable final evidence
+  ---
+  duration_ms: 0.311419
+  type: 'test'
+  ...
+# Subtest: validated content events keep channel open and duplicate finish does not notify twice
+ok 20 - validated content events keep channel open and duplicate finish does not notify twice
+  ---
+  duration_ms: 8.193791
+  type: 'test'
+  ...
+# Subtest: rejects wrong extension, child frame and mismatched route
+ok 21 - rejects wrong extension, child frame and mismatched route
+  ---
+  duration_ms: 1.379387
+  type: 'test'
+  ...
+# Subtest: completion cannot follow suspension or user stop
+ok 22 - completion cannot follow suspension or user stop
+  ---
+  duration_ms: 4.608496
+  type: 'test'
+  ...
+# Subtest: project names persist by conversation and do not leak across navigation
+ok 23 - project names persist by conversation and do not leak across navigation
+  ---
+  duration_ms: 3.168561
+  type: 'test'
+  ...
+# Subtest: opt-in diagnostic entries contain no title or conversation identifier
+ok 24 - opt-in diagnostic entries contain no title or conversation identifier
+  ---
+  duration_ms: 2.683378
+  type: 'test'
+  ...
+# Subtest: SPA sender document URL can be stale while current tab URL is authoritative
+ok 25 - SPA sender document URL can be stale while current tab URL is authoritative
+  ---
+  duration_ms: 1.201573
+  type: 'test'
+  ...
+# Subtest: new chat can migrate an observed active task only in the same document
+ok 26 - new chat can migrate an observed active task only in the same document
+  ---
+  duration_ms: 2.03081
+  type: 'test'
+  ...
+# Subtest: dashboard probe reports missing content script without changing task state
+ok 27 - dashboard probe reports missing content script without changing task state
+  ---
+  duration_ms: 1.435591
+  type: 'test'
+  ...
+# Subtest: rejected stale-route message records a non-sensitive reason even when diagnostics are off
+ok 28 - rejected stale-route message records a non-sensitive reason even when diagnostics are off
+  ---
+  duration_ms: 1.543353
+  type: 'test'
+  ...
+# Subtest: new-chat URL race accepts same-document root start but never old-route finish
+ok 29 - new-chat URL race accepts same-document root start but never old-route finish
+  ---
+  duration_ms: 5.318511
+  type: 'test'
+  ...
+# Subtest: stale root events from another document cannot erase a new conversation
+ok 30 - stale root events from another document cannot erase a new conversation
+  ---
+  duration_ms: 1.675656
+  type: 'test'
+  ...
+# Subtest: late old-document completion cannot finish a new run on the same route
+ok 31 - late old-document completion cannot finish a new run on the same route
+  ---
+  duration_ms: 2.670248
+  type: 'test'
+  ...
+# Subtest: forced favicon test is isolated from task state and rejects invalid requests
+ok 32 - forced favicon test is isolated from task state and rejects invalid requests
+  ---
+  duration_ms: 3.635569
+  type: 'test'
+  ...
+# Subtest: title prefix opt-in persists alongside existing settings
+ok 33 - title prefix opt-in persists alongside existing settings
+  ---
+  duration_ms: 1.031084
+  type: 'test'
+  ...
+# Subtest: probe compares Chrome tab favicon metadata without claiming displayed pixels
+ok 34 - probe compares Chrome tab favicon metadata without claiming displayed pixels
+  ---
+  duration_ms: 1.095278
+  type: 'test'
+  ...
+# Subtest: confirmed completion remains green and unread through same-route reset, idle and suspension; new run requires submission
+ok 35 - confirmed completion remains green and unread through same-route reset, idle and suspension; new run requires submission
+  ---
+  duration_ms: 8.642263
+  type: 'test'
+  ...
+# Subtest: worker state history is bounded, records reasons and contains no conversation content
+ok 36 - worker state history is bounded, records reasons and contains no conversation content
+  ---
+  duration_ms: 3.640205
+  type: 'test'
+  ...
+# Subtest: clear diagnostics removes per-tab transition history without deleting task state
+ok 37 - clear diagnostics removes per-tab transition history without deleting task state
+  ---
+  duration_ms: 2.429154
+  type: 'test'
+  ...
+# Subtest: pending first request survives root-to-new-chat reset before stop appears
+ok 38 - pending first request survives root-to-new-chat reset before stop appears
+  ---
+  duration_ms: 5.834209
+  type: 'test'
+  ...
+# Subtest: per-tab history remains capped after many distinct events
+ok 39 - per-tab history remains capped after many distinct events
+  ---
+  duration_ms: 8.514778
+  type: 'test'
+  ...
+# Subtest: an explicit error after unread completion is notified separately without erasing green completion
+ok 40 - an explicit error after unread completion is notified separately without erasing green completion
+  ---
+  duration_ms: 2.04158
+  type: 'test'
+  ...
+1..40
+# tests 40
+# suites 0
+# pass 40
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 317.382367

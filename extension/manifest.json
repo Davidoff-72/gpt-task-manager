@@ -1,0 +1,54 @@
+{
+  "manifest_version": 3,
+  "name": "GPT Task Manager",
+  "version": "1.0.4",
+  "description": "ChatGPT 작업 상태를 로컬에서 확인합니다.",
+  "permissions": [
+    "storage",
+    "tabs",
+    "notifications",
+    "sidePanel",
+    "offscreen"
+  ],
+  "host_permissions": [
+    "https://chatgpt.com/*"
+  ],
+  "background": {
+    "service_worker": "worker.js"
+  },
+  "action": {
+    "default_title": "GPT Task Manager",
+    "default_popup": "dashboard.html",
+    "default_icon": "icons/icon128.png"
+  },
+  "icons": {
+    "128": "icons/icon128.png"
+  },
+  "side_panel": {
+    "default_path": "dashboard.html"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://chatgpt.com/*"
+      ],
+      "js": [
+        "detector.js",
+        "visual.js",
+        "content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "version_name": "1.0.4 RC3 completion fix (unverified)",
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "icons/status-*.png"
+      ],
+      "matches": [
+        "https://chatgpt.com/*"
+      ]
+    }
+  ]
+}
