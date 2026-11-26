@@ -1,0 +1,5 @@
+
+> gpt-task-manager@1.0.4 test:dashboard
+> node tests/browser/dashboard-mock.cjs
+
+PASS mocked dashboard: worker and content transition reasons visible together

@@ -1,5 +1,5 @@
 
-> gpt-task-manager@1.0.3 test:completion
+> gpt-task-manager@1.0.4 test:completion
 > node tests/browser/completion-integrated-mock.cjs
 
 PASS integrated mocked DOM/Chrome APIs: submit without stop → unknown; confirmed completion → green link; duplicate/idle/reset/reload → preserved; read separate; new observed run → processing
