@@ -58,6 +58,12 @@ chrome.runtime.onMessage.addListener((msg, sender, reply) => {
     else if (msg.type === 'READ_ALL') { for (const id in state) state[id] = TaskCore.transition(state[id], {type:'READ'}); await save(); await badge(); reply({ok:true}); }
     else if (msg.type === 'PROJECT' && Number.isInteger(msg.tabId) && state[msg.tabId]) { const project = String(msg.project || '').slice(0,100); const key = projectKey(state[msg.tabId].conversation); if (key) { if (project) projects[key] = project; else delete projects[key]; for (const task of Object.values(state)) if (task.conversation === key) task.project = project; await chrome.storage.local.set({projects}); } else state[msg.tabId].project = project; await save(); reply({ok:true}); }
     else if (msg.type === 'TEST') { await notify({tabId:-1,title:'알림 테스트'}, 'COMPLETED'); reply({ok:true,suppressed:settings.dnd}); }
+    else if (msg.type === 'PROBE' && Number.isInteger(msg.tabId)) {
+      let tab; try { tab=await chrome.tabs.get(msg.tabId); } catch { reply({ok:false,reason:'TAB_UNAVAILABLE'}); return; }
+      if (!validUrl(tab.url)) { reply({ok:false,reason:'INVALID_ORIGIN'}); return; }
+      try { const result=await chrome.tabs.sendMessage(msg.tabId,{target:'probe'},{frameId:0}); if (!result?.injected) { reply({ok:false,reason:'NO_PROBE_RESPONSE'}); return; } reply({ok:true,probe:result}); }
+      catch { reply({ok:false,reason:'NO_CONTENT_SCRIPT'}); }
+    }
     else if (msg.type === 'DIAGNOSTICS') reply({entries:diagnostics});
     else if (msg.type === 'CLEAR_DIAGNOSTICS') { diagnostics=[]; await chrome.storage.local.set({diagnostics}); reply({ok:true}); }
   }).catch(() => reply({ok:false})); return true;
