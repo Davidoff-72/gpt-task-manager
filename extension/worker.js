@@ -26,7 +26,7 @@ chrome.runtime.onMessage.addListener((msg, sender, reply) => {
     serial(async () => {
       const id = sender.tab.id, previous = state[id] || {tabId:id, status:'UNKNOWN', unread:false};
       // Do not accept an event for a different route before a reset.
-      if (msg.type !== 'RESET' && previous.conversation !== msg.conversation) return;
+      if (msg.type !== 'RESET' && previous.conversation !== msg.conversation) { reply({ok:false}); return; }
       const next = TaskCore.transition(previous, msg, Date.now(), crypto.randomUUID());
       next.tabId = id; next.windowId = sender.tab.windowId; next.title = typeof msg.title === 'string' ? msg.title.slice(0,200) : '';
       if (JSON.stringify(previous) === JSON.stringify(next)) { reply({ok:true}); return; }
