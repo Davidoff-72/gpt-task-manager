@@ -17,7 +17,7 @@ Windows 11/Chrome RC2 설치, 기존 탭 탐색, 테스트 알림음은 사용�
 - Node 상태/모의 Chrome API 회귀: **24/24 PASS**, [로그](rc3-unit-test.log).
 - Playwright + Chromium headless shell에서 **모의 DOM**: 한영 제어, 신규 대화 SPA 이동, 수동 전환, 메시지 ACK, 거부 후 안전한 초기화, 도구 대기, 중단 등을 통과. [로그](rc3-browser-mock.log). 실제 확장 등록이 아닌 모의 `chrome.runtime`입니다.
 - 실제 확장 로드 E2E: [재실행 가능한 테스트](../tests/browser/extension-e2e.cjs)를 추가하고 이 환경의 Chromium 158 headless shell로 시도했으나 서비스 워커 등록 대기 12초가 초과되어 **FAIL**. [로그](rc3-extension-attempt.log). 실제 Chrome/확장 환경 성공으로 간주할 수 없습니다. 확장 기능을 지원하는 Chromium 실행 파일이 있는 환경에서는 `npm ci` 후 `CHROME_PATH=경로 npm run test:extension`으로 재실행하세요. 이 테스트는 ChatGPT 서버가 아니라 요청을 가로챈 로컬 픽스처를 사용합니다.
-- 빌드 성공. 소스·dist·ZIP의 12개 파일 바이트가 일치함을 확인. `gpt-task-manager-rc3.zip` SHA-256: `bd3b95cf1a9d441b1371521de853c804d594c27b62ccd9bcefeec92464e04c5b`.
+- 빌드 성공. 소스·dist·ZIP의 12개 파일 바이트가 일치함을 확인. `gpt-task-manager-rc3.zip` SHA-256: `0d758ff652e59d97d4f95a947951b3bbfa72677a3039e5309d9a8ee2d95ba494`.
 - 실제 로그인된 ChatGPT, Windows 데스크톱 알림, 오디오 및 실제 탭 다중 부하에서 RC3 미검증. 오프스크린 알림음의 RC2 사용자 보고를 RC3 테스트 결과로 재분류하지 않습니다.
 
 ## 사용자 재검증
