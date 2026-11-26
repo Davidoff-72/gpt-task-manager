@@ -13,24 +13,25 @@ const {chromium}=require('playwright-core'); const path=require('node:path'); co
     const chat=await context.newPage(); await chat.goto('https://chatgpt.com/');
     const dashboard=await context.newPage(); await dashboard.goto(`chrome-extension://${id}/dashboard.html`);
     const tasks=()=>dashboard.evaluate(async()=>Object.values((await chrome.storage.local.get('tasks')).tasks||{}));
-    async function waitStatus(status){await dashboard.waitForFunction(async status=>Object.values((await chrome.storage.local.get('tasks')).tasks||{}).some(t=>t.status===status),status,{timeout:15000});}
+    async function waitUntil(check,label){const end=Date.now()+15000;while(Date.now()<end){if(await check())return;await new Promise(resolve=>setTimeout(resolve,100));}throw new Error('Timed out waiting for '+label);}
+    async function waitStatus(status){await waitUntil(async()=>(await tasks()).some(t=>t.status===status),'status '+status);}
     await waitStatus('IDLE');
     const initial=await tasks(); const task=initial.find(x=>x.status==='IDLE'); assert.ok(task?.tabId);
     const probe=await dashboard.evaluate(tabId=>chrome.runtime.sendMessage({type:'PROBE',tabId}),task.tabId); assert.equal(probe.ok,true); assert.equal(probe.probe.injected,true); assert.equal(probe.probe.delivery.state,'ack');
     await dashboard.evaluate(()=>chrome.runtime.sendMessage({type:'SETTINGS',settings:{desktop:false,sound:false,volume:0.5,favicon:false,titlePrefix:true}}));
     const forced=await dashboard.evaluate(tabId=>chrome.runtime.sendMessage({type:'VISUAL_TEST',tabId,status:'PROCESSING'}),task.tabId);assert.equal(forced.ok,true);
-    await dashboard.waitForFunction(async tabId=>(await chrome.tabs.get(tabId)).favIconUrl===chrome.runtime.getURL('icons/status-processing.png'),task.tabId,{timeout:15000});
+    await waitUntil(()=>dashboard.evaluate(async tabId=>(await chrome.tabs.get(tabId)).favIconUrl===chrome.runtime.getURL('icons/status-processing.png'),task.tabId),'processing favicon metadata');
     assert.ok((await chat.title()).startsWith('🔵 '));
     const vprobe=await dashboard.evaluate(tabId=>chrome.runtime.sendMessage({type:'PROBE',tabId}),task.tabId);assert.equal(vprobe.tabIcon,'match');
     await dashboard.evaluate(tabId=>chrome.runtime.sendMessage({type:'VISUAL_TEST',tabId,status:null}),task.tabId);
-    await dashboard.waitForFunction(async tabId=>(await chrome.tabs.get(tabId)).favIconUrl==='https://chatgpt.com/original.png',task.tabId,{timeout:15000});
+    await waitUntil(()=>dashboard.evaluate(async tabId=>(await chrome.tabs.get(tabId)).favIconUrl==='https://chatgpt.com/original.png',task.tabId),'restored favicon metadata');
     console.log('PASS extension test: Chrome tab favicon metadata changed and original restored; on-screen rendering not verified');
 
     await chat.click('[data-testid=send-button]');
     await chat.evaluate(()=>document.querySelector('main').insertAdjacentHTML('beforeend','<button data-testid="stop-button" aria-label="Stop generating">Stop</button>'));
     await waitStatus('PROCESSING'); const active=(await tasks()).find(x=>x.tabId===task.tabId);
     await chat.evaluate(()=>{history.pushState({},'', '/c/new-fixture');document.querySelector('main').append(document.createElement('span'));});
-    await dashboard.waitForFunction(async tabId=>{const t=(await chrome.storage.local.get('tasks')).tasks?.[tabId];return t?.conversation==='/c/new-fixture'&&t?.status==='PROCESSING';},task.tabId,{timeout:10000});
+    await waitUntil(async()=>{const t=(await tasks()).find(x=>x.tabId===task.tabId);return t?.conversation==='/c/new-fixture'&&t?.status==='PROCESSING';},'new-chat migration');
     assert.equal((await tasks()).find(x=>x.tabId===task.tabId).taskId,active.taskId);
     await chat.evaluate(()=>{document.querySelector('#conversation').innerHTML='<article data-testid="conversation-turn-1"><div data-message-author-role="assistant">fixture response</div><button aria-label="Copy response">Copy</button></article>';document.querySelector('[data-testid=stop-button]').remove();});
     await waitStatus('COMPLETED'); console.log('PASS actual extension + synthetic page: injection, ACK, detection and SPA migration');
