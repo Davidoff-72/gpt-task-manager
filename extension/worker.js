@@ -35,7 +35,7 @@ chrome.runtime.onMessage.addListener((msg, sender, reply) => {
     });
     return;
   }
-  if (sender.id !== chrome.runtime.id || sender.tab || !msg || msg.target === 'audio') return;
+  if (sender.id !== chrome.runtime.id || !sender.url?.startsWith(chrome.runtime.getURL('')) || !msg || msg.target === 'audio') return;
   serial(async () => {
     if (msg.type === 'GET') { const tabs = await chrome.tabs.query({url:'https://chatgpt.com/*'}); for (const tab of tabs) if (!state[tab.id]) state[tab.id] = {tabId:tab.id, windowId:tab.windowId, title:tab.title || '', status:tab.discarded ? 'SUSPENDED' : 'UNKNOWN', unread:false}; await save(); reply({tasks:Object.values(state), settings}); }
     else if (msg.type === 'SETTINGS') { const s = msg.settings || {}; settings = {...defaults, desktop:!!s.desktop, sound:!!s.sound, privacy:!!s.privacy, skipActive:!!s.skipActive, dnd:!!s.dnd, volume:Math.max(0, Math.min(1, Number(s.volume) || 0))}; await chrome.storage.local.set({settings}); reply({ok:true}); }
