@@ -11,7 +11,7 @@
     else {if(lastAppliedTitle!==null && document.title===lastAppliedTitle)document.title=baseTitle;lastAppliedTitle=null;lastPrefix='';}
   }
   function removeIcon(){if(icon)icon.remove();icon=null;}
-  function imageProbe(url){if(checkedUrl===url)return;checkedUrl=url;imageCheck='pending';const img=new Image();img.onload=()=>{if(checkedUrl===url)imageCheck='loaded';};img.onerror=()=>{if(checkedUrl===url)imageCheck='failed';};img.src=url;}
+  function imageProbe(url){if(checkedUrl===url)return;checkedUrl=url;imageCheck='pending';cspBlocked=false;const img=new Image();img.onload=()=>{if(checkedUrl===url)imageCheck='loaded';};img.onerror=()=>{if(checkedUrl===url)imageCheck='failed';};img.src=url;}
   function render(){
     const current=testStatus||status;
     renderTitle(current);
@@ -24,7 +24,7 @@
     const icons=[...document.head.querySelectorAll('link[rel~="icon" i]')];
     if(icons[icons.length-1]!==icon)document.head.append(icon);
   }
-  function info(){const icons=document.head?[...document.head.querySelectorAll('link[rel~="icon" i]')]:[];return {faviconEnabled:enabled,testActive:!!testStatus,linkPresent:!!icon?.isConnected,lastIcon:!!icon&&icons[icons.length-1]===icon,imageCheck,cspBlocked,titleEnabled,titleApplied:!!lastAppliedTitle&&document.title===lastAppliedTitle,tabRendering:'not-verifiable'};}
+  function info(){const icons=document.head?[...document.head.querySelectorAll('link[rel~="icon" i]')]:[];return {faviconEnabled:enabled,testActive:!!testStatus,iconKind:styles[testStatus||status]||'unknown',linkPresent:!!icon?.isConnected,lastIcon:!!icon&&icons[icons.length-1]===icon,imageCheck,cspBlocked,titleEnabled,titleApplied:!!lastAppliedTitle&&document.title===lastAppliedTitle,tabRendering:'not-verifiable'};}
   globalThis.TaskVisual={getBaseTitle,info};
   chrome.runtime.onMessage.addListener((msg,sender,reply)=>{
     if(sender.id!==chrome.runtime.id)return;

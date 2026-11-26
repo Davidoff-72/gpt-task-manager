@@ -9,7 +9,7 @@ const {chromium}=require('playwright-core'); const path=require('node:path'); co
     context=await chromium.launchPersistentContext(profile,{executablePath:process.env.CHROME_PATH,headless:true,ignoreDefaultArgs:['--disable-extensions'],args:['--no-sandbox',`--disable-extensions-except=${ext}`,`--load-extension=${ext}`]});
     const worker=context.serviceWorkers()[0] || await context.waitForEvent('serviceworker',{timeout:12000});
     const id=new URL(worker.url()).host;
-    await context.route('https://chatgpt.com/**',route=>route.fulfill({status:200,contentType:'text/html',body:'<!doctype html><title>Fixture - ChatGPT</title><main><div id="conversation"></div><textarea id="prompt-textarea"></textarea><button data-testid="send-button">Send</button></main>'}));
+    await context.route('https://chatgpt.com/**',route=>new URL(route.request().url()).pathname==='/original.png' ? route.fulfill({status:200,contentType:'image/png',body:fs.readFileSync('extension/icons/status-idle.png')}) : route.fulfill({status:200,contentType:'text/html',body:'<!doctype html><title>Fixture - ChatGPT</title><link rel="icon" type="image/png" sizes="32x32" href="/original.png"><main><div id="conversation"></div><textarea id="prompt-textarea"></textarea><button data-testid="send-button">Send</button></main>'}));
     const chat=await context.newPage(); await chat.goto('https://chatgpt.com/');
     const dashboard=await context.newPage(); await dashboard.goto(`chrome-extension://${id}/dashboard.html`);
     const tasks=()=>dashboard.evaluate(async()=>Object.values((await chrome.storage.local.get('tasks')).tasks||{}));
@@ -17,6 +17,15 @@ const {chromium}=require('playwright-core'); const path=require('node:path'); co
     await waitStatus('IDLE');
     const initial=await tasks(); const task=initial.find(x=>x.status==='IDLE'); assert.ok(task?.tabId);
     const probe=await dashboard.evaluate(tabId=>chrome.runtime.sendMessage({type:'PROBE',tabId}),task.tabId); assert.equal(probe.ok,true); assert.equal(probe.probe.injected,true); assert.equal(probe.probe.delivery.state,'ack');
+    await dashboard.evaluate(()=>chrome.runtime.sendMessage({type:'SETTINGS',settings:{desktop:false,sound:false,volume:0.5,favicon:false,titlePrefix:true}}));
+    const forced=await dashboard.evaluate(tabId=>chrome.runtime.sendMessage({type:'VISUAL_TEST',tabId,status:'PROCESSING'}),task.tabId);assert.equal(forced.ok,true);
+    await dashboard.waitForFunction(async tabId=>(await chrome.tabs.get(tabId)).favIconUrl===chrome.runtime.getURL('icons/status-processing.png'),task.tabId,{timeout:15000});
+    assert.ok((await chat.title()).startsWith('🔵 '));
+    const vprobe=await dashboard.evaluate(tabId=>chrome.runtime.sendMessage({type:'PROBE',tabId}),task.tabId);assert.equal(vprobe.tabIcon,'match');
+    await dashboard.evaluate(tabId=>chrome.runtime.sendMessage({type:'VISUAL_TEST',tabId,status:null}),task.tabId);
+    await dashboard.waitForFunction(async tabId=>(await chrome.tabs.get(tabId)).favIconUrl==='https://chatgpt.com/original.png',task.tabId,{timeout:15000});
+    console.log('PASS extension test: Chrome tab favicon metadata changed and original restored; on-screen rendering not verified');
+
     await chat.click('[data-testid=send-button]');
     await chat.evaluate(()=>document.querySelector('main').insertAdjacentHTML('beforeend','<button data-testid="stop-button" aria-label="Stop generating">Stop</button>'));
     await waitStatus('PROCESSING'); const active=(await tasks()).find(x=>x.tabId===task.tabId);

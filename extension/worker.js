@@ -76,7 +76,7 @@ chrome.runtime.onMessage.addListener((msg, sender, reply) => {
     else if (msg.type === 'PROBE' && Number.isInteger(msg.tabId)) {
       let tab; try { tab=await chrome.tabs.get(msg.tabId); } catch { reply({ok:false,reason:'TAB_UNAVAILABLE'}); return; }
       if (!validUrl(tab.url)) { reply({ok:false,reason:'INVALID_ORIGIN'}); return; }
-      try { const result=await chrome.tabs.sendMessage(msg.tabId,{target:'probe'},{frameId:0}); if (!result?.injected) { reply({ok:false,reason:'NO_PROBE_RESPONSE'}); return; } reply({ok:true,probe:result}); }
+      try { const result=await chrome.tabs.sendMessage(msg.tabId,{target:'probe'},{frameId:0}); if (!result?.injected) { reply({ok:false,reason:'NO_PROBE_RESPONSE'}); return; } const kind=result.visual?.iconKind; const expected=['idle','processing','generating','completed','error','stopped','unknown'].includes(kind) ? chrome.runtime.getURL(`icons/status-${kind}.png`) : null; const tabIcon = !tab.favIconUrl || !expected ? 'unavailable' : tab.favIconUrl === expected ? 'match' : 'different'; reply({ok:true,probe:result,tabIcon}); }
       catch { reply({ok:false,reason:'NO_CONTENT_SCRIPT'}); }
     }
     else if (msg.type === 'DIAGNOSTICS') reply({entries:diagnostics});

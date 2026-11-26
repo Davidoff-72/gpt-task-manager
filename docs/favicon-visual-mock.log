@@ -2,5 +2,6 @@
 > gpt-task-manager@1.0.2 test:visual
 > node tests/browser/visual-mock.cjs
 
+PASS synthetic CSP: img-src self blocks old SVG data URL (not a test of actual ChatGPT CSP)
 PASS synthetic DOM: site icon conflict, site title update, opt-out, four forced states, 15-second restoration
 PASS synthetic restrictive img-src blocks data image and is reported; actual ChatGPT CSP not tested

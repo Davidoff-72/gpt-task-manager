@@ -8,6 +8,8 @@ const fs=require('node:fs');const path=require('node:path');const os=require('no
   const page=await browser.newPage();
   await page.route('https://chatgpt.com/**',route=>{const u=new URL(route.request().url()); if(u.pathname.startsWith('/icons/')||u.pathname.endsWith('.png')) return route.fulfill({status:200,contentType:'image/png',body:fs.readFileSync('extension/icons/status-processing.png')}); return route.fulfill({status:200,headers:{'content-type':'text/html','content-security-policy':"img-src 'self'"},body:'<html><head><title>Original title</title><link rel="icon" sizes="32x32" href="/original.png"><link rel="icon" data-gpt-task-manager="status" href="data:image/svg+xml,old"></head><body></body></html>'});});
   await page.goto('https://chatgpt.com/');
+  const svgBlocked=await page.evaluate(()=>new Promise(resolve=>{const img=new Image();img.onload=()=>resolve(false);img.onerror=()=>resolve(true);img.src='data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"/>');}));
+  assert.equal(svgBlocked,true);console.log('PASS synthetic CSP: img-src self blocks old SVG data URL (not a test of actual ChatGPT CSP)');
   await page.evaluate(()=>{window.handlers={};window.chrome={runtime:{id:'test',getURL:p=>'https://chatgpt.com/'+p,onMessage:{addListener:fn=>handlers.msg=fn}},storage:{local:{get:async()=>({settings:{favicon:true,titlePrefix:true}})},onChanged:{addListener:fn=>handlers.storage=fn}}};});
   await page.addScriptTag({path:'extension/visual.js'});
   await page.waitForFunction(()=>window.TaskVisual?.info().imageCheck==='loaded');
