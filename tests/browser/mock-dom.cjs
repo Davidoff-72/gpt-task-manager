@@ -12,9 +12,10 @@ const assert = require('node:assert/strict');
   try {
     const page=await browser.newPage();
     await page.setContent('<title>Fixture - ChatGPT</title><main><div id="conversation"></div><textarea id="prompt-textarea"></textarea><button data-testid="send-button">Send</button></main>');
-    await page.evaluate(()=>{window.events=[];window.chrome={runtime:{sendMessage:msg=>{window.events.push(msg.type); return Promise.resolve();}}};});
+    await page.evaluate(()=>{window.events=[];window.messages=[];window.chrome={runtime:{sendMessage:msg=>{window.events.push(msg.type);window.messages.push(msg); return Promise.resolve();}}};});
     await page.addScriptTag({path:'extension/detector.js'}); await page.addScriptTag({path:'extension/content.js'});
     await page.waitForFunction(()=>events.includes('IDLE'));
+    assert.equal(await page.evaluate(()=>messages.at(-1).title),'Fixture');
     await page.click('[data-testid=send-button]');
     await page.evaluate(()=>document.querySelector('main').insertAdjacentHTML('beforeend','<button aria-label="Stop generating">Stop</button>'));
     await page.waitForFunction(()=>events.includes('OBSERVE_ACTIVE'));
