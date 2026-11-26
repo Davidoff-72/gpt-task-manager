@@ -3,3 +3,5 @@
 > node tests/browser/mock-dom.cjs
 
 PASS mocked DOM in Chromium headless shell: tool pause, stable completion, no duplicate: RESET, IDLE, OBSERVE_ACTIVE, FINISH
+PASS mocked DOM favicon link insertion and original preservation/restoration (browser tab rendering not verified)
+PASS second independent mocked tab: explicit stop is not completion

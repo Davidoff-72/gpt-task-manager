@@ -27,7 +27,7 @@ const assert = require('node:assert/strict');
     const events=await page.evaluate(()=>window.events);
     console.log('PASS mocked DOM in Chromium headless shell: tool pause, stable completion, no duplicate:',events.join(', '));
     await page.evaluate(()=>{document.head.insertAdjacentHTML('beforeend','<link rel="icon" href="https://example.invalid/original.ico">');window.onVisual=null;window.onSettings=null;chrome.runtime.onMessage={addListener:fn=>window.onVisual=fn};chrome.storage={local:{get:async()=>({settings:{favicon:true}})},onChanged:{addListener:fn=>window.onSettings=fn}};});
-    await page.addScriptTag({path:'extension/visual.js'}); await page.waitForSelector('link[data-gpt-task-manager]');
+    await page.addScriptTag({path:'extension/visual.js'}); await page.waitForSelector('link[data-gpt-task-manager]',{state:'attached'});
     await page.evaluate(()=>onVisual({target:'visual',status:'COMPLETED'}));
     assert.equal(await page.locator('link[rel=icon]').count(),2);
     await page.evaluate(()=>onSettings({settings:{newValue:{favicon:false}}},'local'));
