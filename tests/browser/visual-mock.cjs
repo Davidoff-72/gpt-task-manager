@@ -6,7 +6,7 @@ const fs=require('node:fs');const path=require('node:path');const os=require('no
  const browser=await chromium.launch({executablePath:await bundle.executablePath(),args:bundle.args,env:{...process.env,LD_LIBRARY_PATH:path.join(dir,'lib')+':'+(process.env.LD_LIBRARY_PATH||'')}});
  try {
   const page=await browser.newPage();
-  await page.route('https://chatgpt.com/**',route=>{const u=new URL(route.request().url()); if(u.pathname.startsWith('/icons/')||u.pathname.endsWith('.png')) return route.fulfill({status:200,contentType:'image/png',body:fs.readFileSync('extension/icons/status-processing.png')}); return route.fulfill({status:200,headers:{'content-type':'text/html','content-security-policy':"img-src 'self'"},body:'<html><head><title>Original title</title><link rel="icon" sizes="32x32" href="/original.png"><link rel="icon" data-gpt-task-manager="status" href="data:image/svg+xml,old"></head><body></body></html>'});});
+  await page.route('https://chatgpt.com/**',route=>{const u=new URL(route.request().url()); if(u.pathname.startsWith('/icons/')||u.pathname.endsWith('.png')) return route.fulfill({status:200,contentType:'image/png',body:fs.readFileSync('extension/icons/status-processing.png')}); return route.fulfill({status:200,headers:{'content-type':'text/html','content-security-policy':"img-src 'self'"},body:'<html><head><title>Original title</title><link rel="icon" sizes="32x32" href="/original.png"><link rel="icon" data-gpt-task-manager="status" href="data:image/svg+xml,old"></head><body><textarea id="prompt-textarea"></textarea></body></html>'});});
   await page.goto('https://chatgpt.com/');
   const svgBlocked=await page.evaluate(()=>new Promise(resolve=>{const img=new Image();img.onload=()=>resolve(false);img.onerror=()=>resolve(true);img.src='data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"/>');}));
   assert.equal(svgBlocked,true);console.log('PASS synthetic CSP: img-src self blocks old SVG data URL (not a test of actual ChatGPT CSP)');
@@ -14,9 +14,13 @@ const fs=require('node:fs');const path=require('node:path');const os=require('no
   await page.addScriptTag({path:'extension/visual.js'});
   await page.waitForFunction(()=>window.TaskVisual?.info().imageCheck==='loaded');
   assert.equal(await page.title(),'⚪ Original title');
+  await page.evaluate(()=>{handlers.visual=handlers.msg;window.sent=[];chrome.runtime.sendMessage=m=>{sent.push(m);return Promise.resolve({ok:true});};});
+  await page.addScriptTag({path:'extension/detector.js'});await page.addScriptTag({path:'extension/content.js'});
+  await page.waitForFunction(()=>sent.some(m=>m.type==='IDLE'));
+  assert.equal(await page.evaluate(()=>sent.find(m=>m.type==='IDLE').title),'Original title');
   assert.equal(await page.locator('link[data-gpt-task-manager=status]').count(),1);
   assert.equal(await page.locator('link[rel=icon]').count(),2);
-  await page.evaluate(()=>handlers.msg({target:'visual',status:'PROCESSING'},{id:'test'},()=>{}));
+  await page.evaluate(()=>handlers.visual({target:'visual',status:'PROCESSING'},{id:'test'},()=>{}));
   await page.waitForFunction(()=>document.title==='🔵 Original title'&&TaskVisual.info().imageCheck==='loaded');
   assert.ok((await page.locator('link[data-gpt-task-manager=status]').getAttribute('href')).endsWith('/status-processing.png'));
   await page.evaluate(()=>{document.head.insertAdjacentHTML('beforeend','<link rel="icon" sizes="32x32" href="/updated.png">');document.title='Renamed by site';});
@@ -26,10 +30,10 @@ const fs=require('node:fs');const path=require('node:path');const os=require('no
   assert.equal(await page.title(),'Renamed by site');assert.equal(await page.locator('link[data-gpt-task-manager=status]').count(),0);assert.equal(await page.locator('link[rel=icon]').count(),2);
   assert.equal(await page.locator('link[href="/original.png"]').count(),1);assert.equal(await page.locator('link[href="/updated.png"]').count(),1);
   for(const [status,part] of [['PROCESSING','processing'],['COMPLETED','completed'],['ERROR','error'],['UNKNOWN','unknown']]) {
-    const r=await page.evaluate(status=>new Promise(resolve=>handlers.msg({target:'visual-test',status},{id:'test'},resolve)),status);assert.equal(r.ok,true);assert.ok((await page.locator('link[data-gpt-task-manager=status]').getAttribute('href')).endsWith(`/status-${part}.png`));
+    const r=await page.evaluate(status=>new Promise(resolve=>handlers.visual({target:'visual-test',status},{id:'test'},resolve)),status);assert.equal(r.ok,true);assert.ok((await page.locator('link[data-gpt-task-manager=status]').getAttribute('href')).endsWith(`/status-${part}.png`));
   }
   await page.waitForTimeout(15500);assert.equal(await page.evaluate(()=>TaskVisual.info().testActive),false);assert.equal(await page.locator('link[data-gpt-task-manager=status]').count(),0);
-  console.log('PASS synthetic DOM: site icon conflict, site title update, opt-out, four forced states, 15-second restoration');
+  console.log('PASS synthetic DOM: icon conflicts, title restoration, clean content title, four forced states and 15-second restoration');
   const csp=await browser.newPage();const data='data:image/png;base64,'+fs.readFileSync('extension/icons/status-processing.png').toString('base64');
   await csp.route('https://chatgpt.com/**',route=>route.fulfill({status:200,headers:{'content-type':'text/html','content-security-policy':"img-src 'none'"},body:'<html><head><title>CSP fixture</title></head><body></body></html>'}));await csp.goto('https://chatgpt.com/');
   await csp.evaluate(url=>{window.chrome={runtime:{id:'test',getURL:()=>url,onMessage:{addListener:()=>{}}},storage:{local:{get:async()=>({settings:{favicon:true}})},onChanged:{addListener:()=>{}}}};},data);await csp.evaluate(code=>(0,eval)(code),fs.readFileSync('extension/visual.js','utf8'));

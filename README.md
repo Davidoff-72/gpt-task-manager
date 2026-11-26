@@ -3,7 +3,7 @@
 ChatGPT 탭의 공개 화면 신호를 관찰하는 로컬 전용 Chrome MV3 확장입니다. **이 RC3 개발 빌드는 실사용 제품으로 검증되지 않았습니다.** 실제 ChatGPT 화면과 Windows 알림에서 오탐·누락 가능성이 있으므로 중요한 작업의 완료 여부를 반드시 직접 확인하세요.
 
 ## 설치 (Windows 11 / Chrome)
-1. 제공된 `release/gpt-task-manager.zip`을 압축 해제하거나, Node.js와 zip 유틸리티가 있는 환경에서 `npm run build`로 `dist`를 만듭니다.
+1. 제공된 `release/gpt-task-manager-1.0.3.zip`을 압축 해제하거나, Node.js와 zip 유틸리티가 있는 환경에서 `npm run build`로 `dist`를 만듭니다.
 2. Chrome에서 `chrome://extensions`를 열고 **개발자 모드**를 켭니다.
 3. **압축해제된 확장 프로그램을 로드합니다**를 선택하고 압축 해제한 폴더(또는 `dist`)를 지정합니다. 해당 폴더 바로 안에 `manifest.json`이 있어야 합니다.
 4. 기존 ChatGPT 탭을 새로고침합니다. 확장 아이콘에서 팝업을 열고, Chrome의 사이드 패널 메뉴에서도 사용할 수 있습니다.
@@ -31,4 +31,8 @@ Chrome 확장 관리 화면에서 기존 확장의 새 버전을 교체할 때�
 
 ## RC3 감지 진단
 
-대시보드 각 탭의 **진단** 버튼에서 콘텐츠 스크립트 주입, 메시지 ACK/거부, 입력창과 중지 버튼 감지 상태를 확인하세요. 메시지 거부 코드는 진단 옵션과 관계없이 로컬에 기록됩니다. 세부 방법은 [RC3 검증 문서](docs/rc3-validation.md)를 참조하세요. GitHub에 보존된 시험용 ZIP은 `release/gpt-task-manager-rc3.zip`입니다.
+대시보드 각 탭의 **진단** 버튼에서 콘텐츠 스크립트 주입, 메시지 ACK/거부, 입력창과 중지 버튼 감지 상태를 확인하세요. 메시지 거부 코드는 진단 옵션과 관계없이 로컬에 기록됩니다. 세부 방법은 [RC3 검증 문서](docs/rc3-validation.md)를 참조하세요. GitHub에 보존된 최신 시험용 ZIP은 `release/gpt-task-manager-1.0.3.zip`입니다.
+
+## 파비콘 및 제목 표시
+
+대시보드 설정에서 실험적 파비콘과 제목 접두어를 개별적으로 켤 수 있습니다. **탭 표시 강제 시험**은 실제 작업 상태를 바꾸지 않으며 탭에서 직접 표시를 확인해야 합니다. 재시험 방법과 실제 환경 미검증 사항은 [파비콘 검증 보고서](docs/favicon-validation.md)를 참조하세요.

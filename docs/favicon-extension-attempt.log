@@ -1,5 +1,5 @@
 
-> gpt-task-manager@1.0.2 test:extension
+> gpt-task-manager@1.0.3 test:extension
 > node tests/browser/extension-e2e.cjs
 
 FAIL extension-load E2E: browserContext.waitForEvent: Timeout 12000ms exceeded while waiting for event "serviceworker"

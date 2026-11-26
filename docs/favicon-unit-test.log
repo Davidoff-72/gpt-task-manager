@@ -1,0 +1,176 @@
+
+> gpt-task-manager@1.0.3 test
+> node --test tests/*.test.cjs
+
+TAP version 13
+# Subtest: completion requires observed start and happens once
+ok 1 - completion requires observed start and happens once
+  ---
+  duration_ms: 1.689385
+  type: 'test'
+  ...
+# Subtest: stop, error, and suspension cannot turn into completion
+ok 2 - stop, error, and suspension cannot turn into completion
+  ---
+  duration_ms: 0.255442
+  type: 'test'
+  ...
+# Subtest: reset on route or reload invalidates old task
+ok 3 - reset on route or reload invalidates old task
+  ---
+  duration_ms: 0.151317
+  type: 'test'
+  ...
+# Subtest: new active task clears unread and assigns new id
+ok 4 - new active task clears unread and assigns new id
+  ---
+  duration_ms: 0.126071
+  type: 'test'
+  ...
+# Subtest: duplicate active observation preserves task identity
+ok 5 - duplicate active observation preserves task identity
+  ---
+  duration_ms: 0.164147
+  type: 'test'
+  ...
+# Subtest: read preserves completion metadata
+ok 6 - read preserves completion metadata
+  ---
+  duration_ms: 0.116739
+  type: 'test'
+  ...
+# Subtest: existing active conversation and reload never start or complete
+ok 7 - existing active conversation and reload never start or complete
+  ---
+  duration_ms: 1.631023
+  type: 'test'
+  ...
+# Subtest: requires submission, observed stop, changed response, final control and stable candidate
+ok 8 - requires submission, observed stop, changed response, final control and stable candidate
+  ---
+  duration_ms: 0.28836
+  type: 'test'
+  ...
+# Subtest: long idle or copy control alone cannot complete
+ok 9 - long idle or copy control alone cannot complete
+  ---
+  duration_ms: 0.155291
+  type: 'test'
+  ...
+# Subtest: tool activity, stop reappearance and response mutations invalidate candidate
+ok 10 - tool activity, stop reappearance and response mutations invalidate candidate
+  ---
+  duration_ms: 0.294423
+  type: 'test'
+  ...
+# Subtest: explicit stop and errors never become completion
+ok 11 - explicit stop and errors never become completion
+  ---
+  duration_ms: 0.220193
+  type: 'test'
+  ...
+# Subtest: route reset discards active run
+ok 12 - route reset discards active run
+  ---
+  duration_ms: 0.169338
+  type: 'test'
+  ...
+# Subtest: validated content events keep channel open and duplicate finish does not notify twice
+ok 13 - validated content events keep channel open and duplicate finish does not notify twice
+  ---
+  duration_ms: 6.39149
+  type: 'test'
+  ...
+# Subtest: rejects wrong extension, child frame and mismatched route
+ok 14 - rejects wrong extension, child frame and mismatched route
+  ---
+  duration_ms: 2.459072
+  type: 'test'
+  ...
+# Subtest: completion cannot follow suspension or user stop
+ok 15 - completion cannot follow suspension or user stop
+  ---
+  duration_ms: 3.638052
+  type: 'test'
+  ...
+# Subtest: project names persist by conversation and do not leak across navigation
+ok 16 - project names persist by conversation and do not leak across navigation
+  ---
+  duration_ms: 2.17884
+  type: 'test'
+  ...
+# Subtest: opt-in diagnostic entries contain no title or conversation identifier
+ok 17 - opt-in diagnostic entries contain no title or conversation identifier
+  ---
+  duration_ms: 3.249637
+  type: 'test'
+  ...
+# Subtest: SPA sender document URL can be stale while current tab URL is authoritative
+ok 18 - SPA sender document URL can be stale while current tab URL is authoritative
+  ---
+  duration_ms: 2.505922
+  type: 'test'
+  ...
+# Subtest: new chat can migrate an observed active task only in the same document
+ok 19 - new chat can migrate an observed active task only in the same document
+  ---
+  duration_ms: 2.071455
+  type: 'test'
+  ...
+# Subtest: dashboard probe reports missing content script without changing task state
+ok 20 - dashboard probe reports missing content script without changing task state
+  ---
+  duration_ms: 1.350183
+  type: 'test'
+  ...
+# Subtest: rejected stale-route message records a non-sensitive reason even when diagnostics are off
+ok 21 - rejected stale-route message records a non-sensitive reason even when diagnostics are off
+  ---
+  duration_ms: 1.340281
+  type: 'test'
+  ...
+# Subtest: new-chat URL race accepts same-document root start but never old-route finish
+ok 22 - new-chat URL race accepts same-document root start but never old-route finish
+  ---
+  duration_ms: 1.895306
+  type: 'test'
+  ...
+# Subtest: stale root events from another document cannot erase a new conversation
+ok 23 - stale root events from another document cannot erase a new conversation
+  ---
+  duration_ms: 1.245193
+  type: 'test'
+  ...
+# Subtest: late old-document completion cannot finish a new run on the same route
+ok 24 - late old-document completion cannot finish a new run on the same route
+  ---
+  duration_ms: 1.29899
+  type: 'test'
+  ...
+# Subtest: forced favicon test is isolated from task state and rejects invalid requests
+ok 25 - forced favicon test is isolated from task state and rejects invalid requests
+  ---
+  duration_ms: 1.830831
+  type: 'test'
+  ...
+# Subtest: title prefix opt-in persists alongside existing settings
+ok 26 - title prefix opt-in persists alongside existing settings
+  ---
+  duration_ms: 2.546741
+  type: 'test'
+  ...
+# Subtest: probe compares Chrome tab favicon metadata without claiming displayed pixels
+ok 27 - probe compares Chrome tab favicon metadata without claiming displayed pixels
+  ---
+  duration_ms: 1.431618
+  type: 'test'
+  ...
+1..27
+# tests 27
+# suites 0
+# pass 27
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 241.30763

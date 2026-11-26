@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "GPT Task Manager",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "ChatGPT 작업 상태를 로컬에서 확인합니다.",
   "permissions": [
     "storage",
@@ -40,7 +40,7 @@
       "run_at": "document_idle"
     }
   ],
-  "version_name": "1.0.2 RC3 (unverified)",
+  "version_name": "1.0.3 RC3 favicon fix (unverified)",
   "web_accessible_resources": [
     {
       "resources": [
