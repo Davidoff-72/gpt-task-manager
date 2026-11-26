@@ -1,0 +1,10 @@
+const {test} = require('node:test');
+const assert = require('node:assert/strict');
+const {transition} = require('../extension/core.js');
+const go = (s,type,time=100,id='task-1') => transition(s,{type,conversation:'/c/1'},time,id);
+test('completion requires observed start and happens once',()=>{let s={status:'IDLE'}; assert.equal(go(s,'FINISH').status,'IDLE'); s=go(s,'OBSERVE_ACTIVE'); assert.equal(s.taskId,'task-1'); s=go(s,'FINISH',200); assert.equal(s.status,'COMPLETED'); assert.equal(s.unread,true); assert.deepEqual(go(s,'FINISH',300),s);});
+test('stop, error, and suspension cannot turn into completion',()=>{for(const type of ['STOP','ERROR','RATE_LIMITED','SUSPEND','UNCERTAIN']) {let s=go({status:'IDLE'},'OBSERVE_ACTIVE'); s=go(s,type); assert.notEqual(go(s,'FINISH').status,'COMPLETED',type);}});
+test('reset on route or reload invalidates old task',()=>{let s=go({status:'IDLE'},'OBSERVE_ACTIVE'); s=go(s,'RESET'); assert.equal(s.taskId,null); assert.equal(go(s,'FINISH').status,'UNKNOWN');});
+test('new active task clears unread and assigns new id',()=>{let s=go(go({status:'IDLE'},'OBSERVE_ACTIVE'),'FINISH'); s=go(s,'OBSERVE_ACTIVE',300,'task-2'); assert.equal(s.taskId,'task-2'); assert.equal(s.unread,false);});
+test('duplicate active observation preserves task identity',()=>{let s=go({status:'IDLE'},'OBSERVE_ACTIVE'); assert.deepEqual(go(s,'OBSERVE_ACTIVE',200,'other'),s);});
+test('read preserves completion metadata',()=>{let s=go(go({status:'IDLE'},'OBSERVE_ACTIVE'),'FINISH',200); s=go(s,'READ'); assert.equal(s.unread,false); assert.equal(s.completedAt,200);});
