@@ -1,5 +1,5 @@
 
-> gpt-task-manager@1.0.1 test:browser
+> gpt-task-manager@1.0.2 test:browser
 > node tests/browser/mock-dom.cjs
 
 PASS mocked DOM in Chromium headless shell: tool pause, stable completion, no duplicate: RESET, IDLE, OBSERVE_ACTIVE, FINISH
