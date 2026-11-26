@@ -1,6 +1,7 @@
 importScripts('core.js');
 const defaults = {desktop: true, sound: true, volume: 0.5, privacy: false, skipActive: false, dnd: false, favicon: false};
-let state = {}, settings = {...defaults}, ready = chrome.storage.local.get(['tasks', 'settings']).then(data => { state = data.tasks || {}; settings = {...defaults, ...data.settings}; });
+let state = {}, projects = {}, settings = {...defaults}, ready = chrome.storage.local.get(['tasks', 'settings', 'projects']).then(data => { state = data.tasks || {}; projects = data.projects || {}; settings = {...defaults, ...data.settings}; });
+const projectKey = path => /^\/c\/[a-zA-Z0-9-]{1,120}$/.test(path || '') ? path : null;
 let queue = Promise.resolve();
 function serial(fn) { const result = queue.then(() => ready).then(fn); queue = result.catch(console.error); return result; }
 const validUrl = url => { try { return new URL(url).origin === 'https://chatgpt.com'; } catch { return false; } };
@@ -28,6 +29,7 @@ chrome.runtime.onMessage.addListener((msg, sender, reply) => {
       // Do not accept an event for a different route before a reset.
       if (msg.type !== 'RESET' && previous.conversation !== msg.conversation) { reply({ok:false}); return; }
       const next = TaskCore.transition(previous, msg, Date.now(), crypto.randomUUID());
+      if (msg.type === 'RESET') next.project = projects[projectKey(msg.conversation)] || '';
       next.tabId = id; next.windowId = sender.tab.windowId; next.title = typeof msg.title === 'string' ? msg.title.slice(0,200) : '';
       if (JSON.stringify(previous) === JSON.stringify(next)) { reply({ok:true}); return; }
       state[id] = next;
@@ -43,7 +45,7 @@ chrome.runtime.onMessage.addListener((msg, sender, reply) => {
     else if (msg.type === 'SETTINGS') { const s = msg.settings || {}; settings = {...defaults, desktop:!!s.desktop, sound:!!s.sound, privacy:!!s.privacy, skipActive:!!s.skipActive, dnd:!!s.dnd, favicon:!!s.favicon, volume:Math.max(0, Math.min(1, Number(s.volume) || 0))}; await chrome.storage.local.set({settings}); reply({ok:true}); }
     else if (msg.type === 'OPEN' && Number.isInteger(msg.tabId)) { const tab = await chrome.tabs.get(msg.tabId); if (validUrl(tab.url)) { await chrome.windows.update(tab.windowId,{focused:true}); await chrome.tabs.update(tab.id,{active:true}); } reply({ok:true}); }
     else if (msg.type === 'READ_ALL') { for (const id in state) state[id] = TaskCore.transition(state[id], {type:'READ'}); await save(); await badge(); reply({ok:true}); }
-    else if (msg.type === 'PROJECT' && Number.isInteger(msg.tabId) && state[msg.tabId]) { state[msg.tabId].project = String(msg.project || '').slice(0,100); await save(); reply({ok:true}); }
+    else if (msg.type === 'PROJECT' && Number.isInteger(msg.tabId) && state[msg.tabId]) { const project = String(msg.project || '').slice(0,100); const key = projectKey(state[msg.tabId].conversation); if (key) { if (project) projects[key] = project; else delete projects[key]; for (const task of Object.values(state)) if (task.conversation === key) task.project = project; await chrome.storage.local.set({projects}); } else state[msg.tabId].project = project; await save(); reply({ok:true}); }
     else if (msg.type === 'TEST') { await notify({tabId:-1,title:'알림 테스트'}, 'COMPLETED'); reply({ok:true}); }
   }).catch(() => reply({ok:false})); return true;
 });
