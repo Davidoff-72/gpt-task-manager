@@ -34,6 +34,7 @@
       ],
       "js": [
         "detector.js",
+        "visual.js",
         "content.js"
       ],
       "run_at": "document_idle"

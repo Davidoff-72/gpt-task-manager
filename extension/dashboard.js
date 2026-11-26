@@ -12,6 +12,6 @@ function render() {
 async function refresh(){try{data=await send({type:'GET'}); render();}catch(e){$('list').textContent='상태를 불러오지 못했습니다. 확장 프로그램을 다시 로드하세요.';}}
 for(const id of ['search','filter']) $(id).addEventListener('input',render);
 $('read').onclick=async()=>{await send({type:'READ_ALL'});refresh()}; $('full').onclick=()=>chrome.tabs.create({url:chrome.runtime.getURL('dashboard.html')}); $('test').onclick=()=>send({type:'TEST'});
-for(const id of ['desktop','sound','privacy','skipActive','dnd','volume']) $(id).addEventListener('change',()=>{const settings={}; for(const k of ['desktop','sound','privacy','skipActive','dnd']) settings[k]=$(k).checked; settings.volume=Number($('volume').value); send({type:'SETTINGS',settings});});
+for(const id of ['desktop','sound','privacy','skipActive','dnd','favicon','volume']) $(id).addEventListener('change',()=>{const settings={}; for(const k of ['desktop','sound','privacy','skipActive','dnd','favicon']) settings[k]=$(k).checked; settings.volume=Number($('volume').value); send({type:'SETTINGS',settings});});
 chrome.storage.onChanged.addListener((changes,area)=>{if(area==='local' && changes.tasks){data.tasks=Object.values(changes.tasks.newValue||{});render();}});
-refresh().then(()=>{for(const k of ['desktop','sound','privacy','skipActive','dnd']) $(k).checked=!!data.settings[k]; $('volume').value=data.settings.volume??.5;}); setInterval(render,1000);
+refresh().then(()=>{for(const k of ['desktop','sound','privacy','skipActive','dnd','favicon']) $(k).checked=!!data.settings[k]; $('volume').value=data.settings.volume??.5;}); setInterval(render,1000);
