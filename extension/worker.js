@@ -7,10 +7,11 @@ function serial(fn) { const result = queue.then(() => ready).then(fn); queue = r
 const validUrl = url => { try { return new URL(url).origin === 'https://chatgpt.com'; } catch { return false; } };
 async function save() { await chrome.storage.local.set({tasks: state}); }
 function remember(old, next, type, reason) {
-  const history=Array.isArray(old.history) ? old.history.slice(-29) : [];
+  let history=Array.isArray(old.history) ? old.history.slice(-30) : [];
   const entry={at:Date.now(),event:type,from:old.status||'UNKNOWN',to:next.status||'UNKNOWN',reason};
   const last=history[history.length-1];
   if (!last || last.event!==entry.event || last.from!==entry.from || last.to!==entry.to || last.reason!==entry.reason) history.push(entry);
+  history=history.slice(-30);
   return {...next,history};
 }
 async function badge() { const n = Object.values(state).filter(x => x.unread).length; await chrome.action.setBadgeText({text: n ? String(n) : ''}); await chrome.action.setBadgeBackgroundColor({color: '#168769'}); const icons = {PROCESSING:['…','#2867ae'], COMPLETED:['✓','#168769'], ERROR:['!','#bd3434'], RATE_LIMITED:['!','#bd3434'], SUSPENDED:['Ⅱ','#7b6e82'], UNKNOWN:['?','#69777a'], IDLE:['–','#69777a'], STOPPED:['■','#69777a']}; for (const t of Object.values(state)) { const [text,color] = icons[t.status] || icons.UNKNOWN; await chrome.action.setBadgeText({tabId:t.tabId,text}).catch(()=>{}); await chrome.action.setBadgeBackgroundColor({tabId:t.tabId,color}).catch(()=>{}); await chrome.tabs.sendMessage(t.tabId,{target:'visual',status:t.status}).catch(()=>{}); } }
