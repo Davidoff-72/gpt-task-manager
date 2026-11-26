@@ -33,8 +33,16 @@ chrome.runtime.onMessage.addListener((msg, sender, reply) => {
       // sender.url can be the original document URL after a History API navigation.
       // Re-check the current Chrome tab URL instead of treating sender.url's path as current.
       let tab; try { tab = await chrome.tabs.get(id); } catch { reject('TAB_UNAVAILABLE'); return; }
-      if (!validUrl(tab.url) || new URL(tab.url).pathname !== msg.conversation) { reject('TAB_ROUTE_MISMATCH'); return; }
+      if (!validUrl(tab.url)) { reject('INVALID_ORIGIN'); return; }
       const previous = state[id] || {tabId:id, status:'UNKNOWN', unread:false};
+      const currentPath = new URL(tab.url).pathname;
+      // A new chat can acquire its /c/ URL before the queued root-page start arrives.
+      // Permit only non-terminal root events from the same document, then require MIGRATE.
+      const rootStartRace = msg.conversation === '/' && !!projectKey(currentPath) && !!sender.documentId &&
+        ['RESET','IDLE','OBSERVE_ACTIVE'].includes(msg.type) &&
+        (!previous.conversation || (previous.conversation === '/' && previous.documentId === sender.documentId));
+      if (currentPath !== msg.conversation && !rootStartRace) { reject('TAB_ROUTE_MISMATCH'); return; }
+      if (msg.type !== 'RESET' && previous.documentId && previous.documentId !== sender.documentId) { reject('DOCUMENT_MISMATCH'); return; }
       if (msg.type === 'MIGRATE') {
         if (!sender.documentId || previous.documentId !== sender.documentId || previous.conversation !== '/' || !projectKey(msg.conversation) || previous.status !== 'PROCESSING' || !previous.taskId) { reject('MIGRATION_NOT_VERIFIED'); return; }
       } else if (msg.type !== 'RESET' && previous.conversation !== msg.conversation) { reject('STATE_ROUTE_MISMATCH'); return; }
