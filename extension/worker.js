@@ -5,7 +5,7 @@ let queue = Promise.resolve();
 function serial(fn) { queue = queue.then(() => ready).then(fn).catch(console.error); return queue; }
 const validUrl = url => { try { return new URL(url).origin === 'https://chatgpt.com'; } catch { return false; } };
 async function save() { await chrome.storage.local.set({tasks: state}); }
-async function badge() { const n = Object.values(state).filter(x => x.unread).length; await chrome.action.setBadgeText({text: n ? String(n) : ''}); await chrome.action.setBadgeBackgroundColor({color: '#168769'}); }
+async function badge() { const n = Object.values(state).filter(x => x.unread).length; await chrome.action.setBadgeText({text: n ? String(n) : ''}); await chrome.action.setBadgeBackgroundColor({color: '#168769'}); const icons = {PROCESSING:['…','#2867ae'], COMPLETED:['✓','#168769'], ERROR:['!','#bd3434'], RATE_LIMITED:['!','#bd3434'], SUSPENDED:['Ⅱ','#7b6e82'], UNKNOWN:['?','#69777a'], IDLE:['–','#69777a'], STOPPED:['■','#69777a']}; for (const t of Object.values(state)) { const [text,color] = icons[t.status] || icons.UNKNOWN; await chrome.action.setBadgeText({tabId:t.tabId,text}).catch(()=>{}); await chrome.action.setBadgeBackgroundColor({tabId:t.tabId,color}).catch(()=>{}); } }
 async function notify(task, kind) {
   if (settings.dnd || (settings.skipActive && (await chrome.tabs.query({active:true, lastFocusedWindow:true})).some(t => t.id === task.tabId))) return;
   if (settings.desktop) {
@@ -37,7 +37,7 @@ chrome.runtime.onMessage.addListener((msg, sender, reply) => {
   }
   if (sender.id !== chrome.runtime.id || !sender.url?.startsWith(chrome.runtime.getURL('')) || !msg || msg.target === 'audio') return;
   serial(async () => {
-    if (msg.type === 'GET') { const tabs = await chrome.tabs.query({url:'https://chatgpt.com/*'}); for (const tab of tabs) if (!state[tab.id]) state[tab.id] = {tabId:tab.id, windowId:tab.windowId, title:tab.title || '', status:tab.discarded ? 'SUSPENDED' : 'UNKNOWN', unread:false}; await save(); reply({tasks:Object.values(state), settings}); }
+    if (msg.type === 'GET') { const tabs = await chrome.tabs.query({url:'https://chatgpt.com/*'}); const ids = new Set(tabs.map(t => t.id)); for (const id of Object.keys(state)) if (!ids.has(Number(id))) delete state[id]; for (const tab of tabs) if (!state[tab.id]) state[tab.id] = {tabId:tab.id, windowId:tab.windowId, title:tab.title || '', status:tab.discarded ? 'SUSPENDED' : 'UNKNOWN', unread:false}; await save(); reply({tasks:Object.values(state), settings}); }
     else if (msg.type === 'SETTINGS') { const s = msg.settings || {}; settings = {...defaults, desktop:!!s.desktop, sound:!!s.sound, privacy:!!s.privacy, skipActive:!!s.skipActive, dnd:!!s.dnd, volume:Math.max(0, Math.min(1, Number(s.volume) || 0))}; await chrome.storage.local.set({settings}); reply({ok:true}); }
     else if (msg.type === 'OPEN' && Number.isInteger(msg.tabId)) { const tab = await chrome.tabs.get(msg.tabId); if (validUrl(tab.url)) { await chrome.windows.update(tab.windowId,{focused:true}); await chrome.tabs.update(tab.id,{active:true}); } reply({ok:true}); }
     else if (msg.type === 'READ_ALL') { for (const id in state) state[id] = TaskCore.transition(state[id], {type:'READ'}); await save(); await badge(); reply({ok:true}); }
