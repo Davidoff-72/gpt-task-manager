@@ -6,7 +6,8 @@
     "test": "node --test tests/*.test.cjs",
     "build": "node scripts/build.cjs",
     "test:browser": "node tests/browser/mock-dom.cjs",
-    "test:extension": "node tests/browser/extension-e2e.cjs"
+    "test:extension": "node tests/browser/extension-e2e.cjs",
+    "test:visual": "node tests/browser/visual-mock.cjs"
   },
   "devDependencies": {
     "@sparticuz/chromium": "158.0.0",
