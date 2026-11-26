@@ -7,7 +7,7 @@
     const s = {...old};
     if (event.type === 'RESET') {
       if (s.status === 'COMPLETED' && s.conversation === event.conversation && stableConversation(event.conversation)) return {...s, pendingSubmit:false, submittedAt:null, monitoringSuspended:false};
-      return {...s, conversation:event.conversation, status:'UNKNOWN', taskId:null, startedAt:null, completedAt:null, unread:false, pendingSubmit:false, submittedAt:null, monitoringSuspended:false};
+      return {...s, conversation:event.conversation, status:'UNKNOWN', taskId:null, startedAt:null, completedAt:null, unread:false, pendingSubmit:false, submittedAt:null, monitoringSuspended:false, deferredAlert:null};
     }
     if (event.type === 'SUSPEND') {
       if (s.status === 'COMPLETED' && !event.routeChanged) return {...s, pendingSubmit:false, submittedAt:null, monitoringSuspended:true};
@@ -21,7 +21,7 @@
     if (event.type === 'OBSERVE_ACTIVE') {
       if (s.status === 'PROCESSING' && s.taskId) return s;
       if (!s.pendingSubmit || !Number.isFinite(s.submittedAt) || now-s.submittedAt < 0 || now-s.submittedAt > SUBMISSION_WINDOW_MS) return s;
-      return {...s, status:'PROCESSING', taskId:id, startedAt:now, completedAt:null, unread:false, pendingSubmit:false, submittedAt:null, monitoringSuspended:false};
+      return {...s, status:'PROCESSING', taskId:id, startedAt:now, completedAt:null, unread:false, pendingSubmit:false, submittedAt:null, monitoringSuspended:false, deferredAlert:null};
     }
     if (event.type === 'STOP') {
       if (s.status === 'PROCESSING' && s.taskId) return {...s, status:'STOPPED', unread:false, pendingSubmit:false, submittedAt:null};
@@ -32,9 +32,9 @@
       return {...s, status:'COMPLETED', completedAt:now, unread:true, pendingSubmit:false, submittedAt:null};
     }
     if (event.type === 'ERROR' || event.type === 'RATE_LIMITED') {
-      if (s.status === 'COMPLETED' && s.unread && !s.pendingSubmit) return s;
+      if (s.status === 'COMPLETED' && s.unread && !s.pendingSubmit) return s.deferredAlert===event.type ? s : {...s,deferredAlert:event.type};
       if (s.status === event.type) return s;
-      return {...s, status:event.type, completedAt:now, unread:true, pendingSubmit:false, submittedAt:null};
+      return {...s, status:event.type, completedAt:now, unread:true, pendingSubmit:false, submittedAt:null, deferredAlert:null, ...(s.status==='COMPLETED' ? {taskId:null,startedAt:null} : {})};
     }
     if (event.type === 'UNCERTAIN' && terminal.has(s.status) && s.pendingSubmit) return {...s, pendingSubmit:false, submittedAt:null};
     if (event.type === 'UNCERTAIN' && !terminal.has(s.status)) return {...s, status:'UNKNOWN', taskId:null, startedAt:null, pendingSubmit:false, submittedAt:null};

@@ -63,6 +63,7 @@ chrome.runtime.onMessage.addListener((msg, sender, reply) => {
       if (settings.diagnostic && previous.status !== next.status) { diagnostics.push({at:Date.now(),event:msg.type,status:next.status}); diagnostics = diagnostics.slice(-100); await chrome.storage.local.set({diagnostics}); }
       await save(); await badge();
       if (['COMPLETED','ERROR','RATE_LIMITED'].includes(next.status) && next.status !== previous.status) await notify(next, next.status);
+      if (next.deferredAlert && next.deferredAlert !== previous.deferredAlert) await notify({...next,taskId:null,startedAt:null,completedAt:Date.now()},next.deferredAlert);
       reply({ok:true});
     }).catch(() => reject('WORKER_ERROR'));
     return true;
