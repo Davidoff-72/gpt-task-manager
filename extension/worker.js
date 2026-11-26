@@ -55,7 +55,7 @@ chrome.runtime.onMessage.addListener((msg, sender, reply) => {
       await save(); await badge();
       if (['COMPLETED','ERROR','RATE_LIMITED'].includes(next.status) && next.status !== previous.status) await notify(next, next.status);
       reply({ok:true});
-    }).catch(() => reply({ok:false,reason:'WORKER_ERROR'}));
+    }).catch(() => reject('WORKER_ERROR'));
     return true;
   }
   if (sender.id !== chrome.runtime.id || !sender.url?.startsWith(chrome.runtime.getURL('')) || !msg || msg.target === 'audio') return;
