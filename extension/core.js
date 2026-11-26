@@ -32,6 +32,7 @@
       return {...s, status:'COMPLETED', completedAt:now, unread:true, pendingSubmit:false, submittedAt:null};
     }
     if (event.type === 'ERROR' || event.type === 'RATE_LIMITED') {
+      if (s.status === 'COMPLETED' && s.unread && !s.pendingSubmit) return s;
       if (s.status === event.type) return s;
       return {...s, status:event.type, completedAt:now, unread:true, pendingSubmit:false, submittedAt:null};
     }
@@ -52,8 +53,8 @@
       case 'READ': return 'USER_VIEWED';
       case 'UNCERTAIN': return 'INSUFFICIENT_EVIDENCE';
       case 'STOP': return old.status==='PROCESSING' ? 'USER_STOP' : 'NO_ACTIVE_TASK';
-      case 'ERROR': return 'EXPLICIT_ERROR';
-      case 'RATE_LIMITED': return 'EXPLICIT_RATE_LIMIT';
+      case 'ERROR': return next.status==='COMPLETED' ? 'UNREAD_COMPLETION_PRESERVED' : 'EXPLICIT_ERROR';
+      case 'RATE_LIMITED': return next.status==='COMPLETED' ? 'UNREAD_COMPLETION_PRESERVED' : 'EXPLICIT_RATE_LIMIT';
       case 'MIGRATE': return 'SAME_DOCUMENT_NEW_CHAT';
       default: return 'UNKNOWN_EVENT';
     }

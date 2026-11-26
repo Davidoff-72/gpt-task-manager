@@ -89,7 +89,7 @@ chrome.runtime.onMessage.addListener((msg, sender, reply) => {
       catch { reply({ok:false,reason:'NO_CONTENT_SCRIPT'}); }
     }
     else if (msg.type === 'DIAGNOSTICS') reply({entries:diagnostics});
-    else if (msg.type === 'CLEAR_DIAGNOSTICS') { diagnostics=[]; await chrome.storage.local.set({diagnostics}); reply({ok:true}); }
+    else if (msg.type === 'CLEAR_DIAGNOSTICS') { diagnostics=[]; for(const task of Object.values(state)) delete task.history; await chrome.storage.local.set({diagnostics,tasks:state}); const results=await Promise.all(Object.values(state).map(t=>chrome.tabs.sendMessage(t.tabId,{target:'clear-trace'},{frameId:0}).catch(()=>null))); reply({ok:true,notCleared:results.filter(x=>!x?.ok).length}); }
   }).catch(() => reply({ok:false})); return true;
 });
 chrome.tabs.onRemoved.addListener(id => serial(async () => { delete state[id]; await save(); await badge(); }));
