@@ -40,5 +40,15 @@
       "run_at": "document_idle"
     }
   ],
-  "version_name": "1.0.2 RC3 (unverified)"
+  "version_name": "1.0.2 RC3 (unverified)",
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "icons/status-*.png"
+      ],
+      "matches": [
+        "https://chatgpt.com/*"
+      ]
+    }
+  ]
 }

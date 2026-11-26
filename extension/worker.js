@@ -1,5 +1,5 @@
 importScripts('core.js');
-const defaults = {desktop: true, sound: true, volume: 0.5, privacy: false, skipActive: false, dnd: false, favicon: false, diagnostic: false};
+const defaults = {desktop: true, sound: true, volume: 0.5, privacy: false, skipActive: false, dnd: false, favicon: false, titlePrefix: false, diagnostic: false};
 let state = {}, projects = {}, diagnostics = [], settings = {...defaults}, ready = chrome.storage.local.get(['tasks', 'settings', 'projects', 'diagnostics']).then(data => { state = data.tasks || {}; projects = data.projects || {}; diagnostics = Array.isArray(data.diagnostics) ? data.diagnostics.slice(-100) : []; settings = {...defaults, ...data.settings}; });
 const projectKey = path => /^\/c\/[a-zA-Z0-9-]{1,120}$/.test(path || '') ? path : null;
 let queue = Promise.resolve();
@@ -61,11 +61,17 @@ chrome.runtime.onMessage.addListener((msg, sender, reply) => {
   if (sender.id !== chrome.runtime.id || !sender.url?.startsWith(chrome.runtime.getURL('')) || !msg || msg.target === 'audio') return;
   serial(async () => {
     if (msg.type === 'GET') { const tabs = await chrome.tabs.query({url:'https://chatgpt.com/*'}); const ids = new Set(tabs.map(t => t.id)); for (const id of Object.keys(state)) if (!ids.has(Number(id))) delete state[id]; for (const tab of tabs) if (!state[tab.id]) state[tab.id] = {tabId:tab.id, windowId:tab.windowId, title:tab.title || '', status:tab.discarded ? 'SUSPENDED' : 'UNKNOWN', unread:false}; await save(); reply({tasks:Object.values(state), settings}); }
-    else if (msg.type === 'SETTINGS') { const s = msg.settings || {}; settings = {...defaults, desktop:!!s.desktop, sound:!!s.sound, privacy:!!s.privacy, skipActive:!!s.skipActive, dnd:!!s.dnd, favicon:!!s.favicon, diagnostic:!!s.diagnostic, volume:Math.max(0, Math.min(1, Number(s.volume) || 0))}; await chrome.storage.local.set({settings}); reply({ok:true}); }
+    else if (msg.type === 'SETTINGS') { const s = msg.settings || {}; settings = {...defaults, desktop:!!s.desktop, sound:!!s.sound, privacy:!!s.privacy, skipActive:!!s.skipActive, dnd:!!s.dnd, favicon:!!s.favicon, titlePrefix:!!s.titlePrefix, diagnostic:!!s.diagnostic, volume:Math.max(0, Math.min(1, Number(s.volume) || 0))}; await chrome.storage.local.set({settings}); reply({ok:true}); }
     else if (msg.type === 'OPEN' && Number.isInteger(msg.tabId)) { const tab = await chrome.tabs.get(msg.tabId); if (validUrl(tab.url)) { await chrome.windows.update(tab.windowId,{focused:true}); await chrome.tabs.update(tab.id,{active:true}); } reply({ok:true}); }
     else if (msg.type === 'READ_ALL') { for (const id in state) state[id] = TaskCore.transition(state[id], {type:'READ'}); await save(); await badge(); reply({ok:true}); }
     else if (msg.type === 'PROJECT' && Number.isInteger(msg.tabId) && state[msg.tabId]) { const project = String(msg.project || '').slice(0,100); const key = projectKey(state[msg.tabId].conversation); if (key) { if (project) projects[key] = project; else delete projects[key]; for (const task of Object.values(state)) if (task.conversation === key) task.project = project; await chrome.storage.local.set({projects}); } else state[msg.tabId].project = project; await save(); reply({ok:true}); }
     else if (msg.type === 'TEST') { await notify({tabId:-1,title:'알림 테스트'}, 'COMPLETED'); reply({ok:true,suppressed:settings.dnd}); }
+    else if (msg.type === 'VISUAL_TEST' && Number.isInteger(msg.tabId) && (msg.status === null || ['PROCESSING','COMPLETED','ERROR','UNKNOWN'].includes(msg.status))) {
+      let tab; try { tab=await chrome.tabs.get(msg.tabId); } catch { reply({ok:false,reason:'TAB_UNAVAILABLE'}); return; }
+      if (!validUrl(tab.url)) { reply({ok:false,reason:'INVALID_ORIGIN'}); return; }
+      try { const result=await chrome.tabs.sendMessage(msg.tabId,{target:'visual-test',status:msg.status},{frameId:0}); reply(result?.ok ? result : {ok:false,reason:result?.reason || 'NO_PROBE_RESPONSE'}); }
+      catch { reply({ok:false,reason:'NO_CONTENT_SCRIPT'}); }
+    }
     else if (msg.type === 'PROBE' && Number.isInteger(msg.tabId)) {
       let tab; try { tab=await chrome.tabs.get(msg.tabId); } catch { reply({ok:false,reason:'TAB_UNAVAILABLE'}); return; }
       if (!validUrl(tab.url)) { reply({ok:false,reason:'INVALID_ORIGIN'}); return; }
