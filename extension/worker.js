@@ -23,21 +23,31 @@ async function notify(task, kind) {
 }
 chrome.runtime.onMessage.addListener((msg, sender, reply) => {
   if (msg?.source === 'chatgpt-adapter') {
-    if (sender.id !== chrome.runtime.id || sender.frameId !== 0 || !sender.tab?.id || !validUrl(sender.url) || !validUrl(sender.tab.url) || typeof msg.conversation !== 'string' || msg.conversation.length > 500 || new URL(sender.url).pathname !== msg.conversation || !['RESET','OBSERVE_ACTIVE','STOP','FINISH','ERROR','RATE_LIMITED','UNCERTAIN','IDLE'].includes(msg.type)) return;
+    const types = ['RESET','MIGRATE','OBSERVE_ACTIVE','STOP','FINISH','ERROR','RATE_LIMITED','UNCERTAIN','IDLE'];
+    const reject = reason => { reply({ok:false,reason}); if (sender.id === chrome.runtime.id) serial(async () => { diagnostics.push({at:Date.now(),event:'REJECTED',reason}); diagnostics=diagnostics.slice(-100); await chrome.storage.local.set({diagnostics}); }); };
+    if (sender.id !== chrome.runtime.id || sender.frameId !== 0 || !Number.isInteger(sender.tab?.id)) { reject('INVALID_SENDER'); return; }
+    if (!validUrl(sender.url) || !validUrl(sender.tab.url)) { reject('INVALID_ORIGIN'); return; }
+    if (typeof msg.conversation !== 'string' || !msg.conversation.startsWith('/') || msg.conversation.length > 500 || !types.includes(msg.type)) { reject('INVALID_MESSAGE'); return; }
     serial(async () => {
-      const id = sender.tab.id, previous = state[id] || {tabId:id, status:'UNKNOWN', unread:false};
-      // Do not accept an event for a different route before a reset.
-      if (msg.type !== 'RESET' && previous.conversation !== msg.conversation) { reply({ok:false}); return; }
-      const next = TaskCore.transition(previous, msg, Date.now(), crypto.randomUUID());
-      if (msg.type === 'RESET') next.project = projects[projectKey(msg.conversation)] || '';
-      next.tabId = id; next.windowId = sender.tab.windowId; next.title = typeof msg.title === 'string' ? msg.title.slice(0,200) : '';
+      const id = sender.tab.id;
+      // sender.url can be the original document URL after a History API navigation.
+      // Re-check the current Chrome tab URL instead of treating sender.url's path as current.
+      let tab; try { tab = await chrome.tabs.get(id); } catch { reject('TAB_UNAVAILABLE'); return; }
+      if (!validUrl(tab.url) || new URL(tab.url).pathname !== msg.conversation) { reject('TAB_ROUTE_MISMATCH'); return; }
+      const previous = state[id] || {tabId:id, status:'UNKNOWN', unread:false};
+      if (msg.type === 'MIGRATE') {
+        if (!sender.documentId || previous.documentId !== sender.documentId || previous.conversation !== '/' || !projectKey(msg.conversation) || previous.status !== 'PROCESSING' || !previous.taskId) { reject('MIGRATION_NOT_VERIFIED'); return; }
+      } else if (msg.type !== 'RESET' && previous.conversation !== msg.conversation) { reject('STATE_ROUTE_MISMATCH'); return; }
+      const next = msg.type === 'MIGRATE' ? {...previous,conversation:msg.conversation} : TaskCore.transition(previous, msg, Date.now(), crypto.randomUUID());
+      if (msg.type === 'RESET' || msg.type === 'MIGRATE') next.project = projects[projectKey(msg.conversation)] || '';
+      next.tabId = id; next.windowId = sender.tab.windowId; next.documentId = sender.documentId || null; next.title = typeof msg.title === 'string' ? msg.title.slice(0,200) : '';
       if (JSON.stringify(previous) === JSON.stringify(next)) { reply({ok:true}); return; }
       state[id] = next;
       if (settings.diagnostic && previous.status !== next.status) { diagnostics.push({at:Date.now(),event:msg.type,status:next.status}); diagnostics = diagnostics.slice(-100); await chrome.storage.local.set({diagnostics}); }
       await save(); await badge();
       if (['COMPLETED','ERROR','RATE_LIMITED'].includes(next.status) && next.status !== previous.status) await notify(next, next.status);
       reply({ok:true});
-    }).catch(() => reply({ok:false}));
+    }).catch(() => reply({ok:false,reason:'WORKER_ERROR'}));
     return true;
   }
   if (sender.id !== chrome.runtime.id || !sender.url?.startsWith(chrome.runtime.getURL('')) || !msg || msg.target === 'audio') return;

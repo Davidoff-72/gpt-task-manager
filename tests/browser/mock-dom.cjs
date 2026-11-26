@@ -12,7 +12,7 @@ const assert = require('node:assert/strict');
   try {
     const page=await browser.newPage();
     await page.setContent('<title>Fixture - ChatGPT</title><main><div id="conversation"></div><textarea id="prompt-textarea"></textarea><button data-testid="send-button">Send</button></main>');
-    await page.evaluate(()=>{window.events=[];window.messages=[];window.chrome={runtime:{sendMessage:msg=>{window.events.push(msg.type);window.messages.push(msg); return Promise.resolve();}}};});
+    await page.evaluate(()=>{window.events=[];window.messages=[];window.chrome={runtime:{sendMessage:msg=>{window.events.push(msg.type);window.messages.push(msg); return Promise.resolve({ok:true});},onMessage:{addListener:()=>{}}}};});
     await page.addScriptTag({path:'extension/detector.js'}); await page.addScriptTag({path:'extension/content.js'});
     await page.waitForFunction(()=>events.includes('IDLE'));
     assert.equal(await page.evaluate(()=>messages.at(-1).title),'Fixture');
@@ -37,7 +37,7 @@ const assert = require('node:assert/strict');
     console.log('PASS mocked DOM favicon link insertion and original preservation/restoration (browser tab rendering not verified)');
     const second=await browser.newPage();
     await second.setContent('<main><textarea id="prompt-textarea"></textarea><button data-testid="send-button">Send</button></main>');
-    await second.evaluate(()=>{window.events=[];window.chrome={runtime:{sendMessage:msg=>{events.push(msg.type); return Promise.resolve();}}};});
+    await second.evaluate(()=>{window.events=[];window.chrome={runtime:{sendMessage:msg=>{events.push(msg.type); return Promise.resolve({ok:true});},onMessage:{addListener:()=>{}}}};});
     await second.addScriptTag({path:'extension/detector.js'}); await second.addScriptTag({path:'extension/content.js'});
     await second.waitForFunction(()=>events.includes('IDLE')); await second.click('[data-testid=send-button]');
     await second.evaluate(()=>document.querySelector('main').insertAdjacentHTML('beforeend','<button aria-label="Stop generating">Stop</button>'));
